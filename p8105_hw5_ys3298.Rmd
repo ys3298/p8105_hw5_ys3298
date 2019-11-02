@@ -112,7 +112,7 @@ model = function(beta1 = 0) {
   return(tibble(beta1 = pull(ls_fit,estimate)[[2]], p = pull(ls_fit,p.value)[[2]]))
 }
 
-n = 1000
+n = 10000
 
 sim_results = 
   rerun(n, model(0)) %>%  ## rerun
