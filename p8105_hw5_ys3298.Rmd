@@ -65,15 +65,21 @@ map(iris_with_missing, missing_value)
 # PROBLEM2
 
 ```{r}
-files = list.files("./data") 
-file_name = paste("./data", files, sep = "/")
-  
+filename = list.files("./data") 
+data_path = paste("./data", filename, sep = "/")
 
-data = file_name %>%
-  map(read_csv) %>%     # read in all the files individually, using
-                       # the function read_csv() from the readr package
-  reduce(rbind)        # reduce with rbind into one dataframe
+names = data_frame(filename = filename)
 
-data
+data =
+  data_path %>%
+  map(read_csv) %>%     
+  reduce(rbind) %>% 
+  cbind(names) %>% 
+  select(filename,everything()) %>% 
+  separate(col = filename, into = c("group","ID_csv"), sep = "_") %>% 
+  mutate(ID = str_replace(ID_csv,".csv","")) %>% 
+  select( group, ID, everything()) %>% 
+  select(-ID_csv)
+
 ```
 
