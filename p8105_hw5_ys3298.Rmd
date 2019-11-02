@@ -37,7 +37,7 @@ iris_with_missing = iris %>%
 
 ```
 
-```{r echo=FALSE}
+```{r message=FALSE}
 #Write a function 
 missing_value = function(vec) {
   if (is.numeric(vec)) {
@@ -51,20 +51,15 @@ missing_value = function(vec) {
   output
 }
 
-#missing_value(iris_with_missing$Sepal.Length)
-#missing_value(iris_with_missing$Sepal.Width)
-#missing_value(iris_with_missing$Petal.Length)
-#missing_value(iris_with_missing$Petal.Width)
-#missing_value(iris_with_missing$Species)
-
 #Apply this function to the columns of iris_with_missing using a map statement
-map(iris_with_missing, missing_value)
+map(iris_with_missing, missing_value) %>%
+  bind_cols()
 ```
 
 
 # PROBLEM2
 
-```{r echo=TRUE}
+```{r echo=TRUE, message=FALSE}
 # create a tidy dataframe
 filename = list.files("./data") 
 data_path = paste("./data", filename, sep = "/")
@@ -78,7 +73,7 @@ data =
   cbind(names) %>% 
   separate(col = filename, into = c("group","ID_csv"), sep = "_") %>% 
   mutate(ID = str_replace(ID_csv,".csv","")) %>% 
-  select( group, ID, everything()) %>% 
+  select(group, ID, everything()) %>% 
   select(-ID_csv) %>% 
   janitor::clean_names() 
 
@@ -117,7 +112,7 @@ model = function(beta1 = 0) {
   return(tibble(beta1 = pull(ls_fit,estimate)[[2]], p = pull(ls_fit,p.value)[[2]]))
 }
 
-n = 100
+n = 1000
 
 sim_results = 
   rerun(n, model(0)) %>%  ## rerun
@@ -139,10 +134,10 @@ proportion =
   summarize(proportion = n()/n) 
 
 proportion %>% 
-  ggplot(aes(x = beta1, y = proportion)) + geom_point(color = "blue", size = 5) + geom_line(color = "blue") +
+  ggplot(aes(x = beta1_true, y = proportion)) + geom_point(color = "blue", size = 5) + geom_line(color = "blue") +
   labs(x = "beta1", y = "Power(proportion of reject)", title = "Association between effect size and power")
 ```
-**Describe the association between effect size and power:**
+**Describe the association between effect size and power:** Power increases with the increase of size effect.
 
 ```{r}
 beta1_true_average = 
@@ -169,7 +164,7 @@ all_info %>%
     title = "Estimate Beta1 Vs True Beta1",
     x = "True Beta1",
     y = "Average Beta1"
-  )
+  ) 
 
 
 ```
