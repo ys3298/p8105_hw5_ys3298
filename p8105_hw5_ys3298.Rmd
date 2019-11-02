@@ -83,3 +83,43 @@ data =
 
 ```
 
+# PROBLEM3
+
+```{r}
+model = function(beta0=2, beta1=0, sigma2=50) {
+  x = rnorm(30)
+  epi = rnorm(30, sd = sigma2)
+  y = beta0 + beta1 * x + epi
+  data = tibble(x=x,y=y)
+  ls_fit = lm(y~x, data) %>% 
+    broom::tidy()
+  return(tibble(beta1 = ls_fit$estimate[[2]], p = ls_fit$p.value[2]))
+}
+
+df = tibble(beta,p)
+for (i in 1:10) {
+  m[i,] = model()
+  i = i+1
+}
+df
+  
+
+for(beta1 in 1:6) {
+  
+  data = model(beta1=beta1)
+  ls_fit = lm(y~x, data) %>% 
+    broom::tidy()
+  df = df %>% mutate(beta1 = coef(ls_fit)[2])
+  
+}
+
+
+data=model(1)
+ ls_fit =lm(y~x,data) %>% 
+   broom::tidy() %>% 
+   select(p.value)
+ 
+
+```
+
+
