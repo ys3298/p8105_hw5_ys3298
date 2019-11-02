@@ -38,6 +38,7 @@ iris_with_missing = iris %>%
 ```
 
 ```{r}
+#Write a function 
 missing_value = function(vec) {
   if (is.numeric(vec)) {
     m = round(mean(vec, na.rm = TRUE), 1)
@@ -50,8 +51,13 @@ missing_value = function(vec) {
   ans
 }
 
-missing_value(iris_with_missing$Sepal.Length)
+#missing_value(iris_with_missing$Sepal.Length)
+#missing_value(iris_with_missing$Sepal.Width)
+#missing_value(iris_with_missing$Petal.Length)
+#missing_value(iris_with_missing$Petal.Width)
+#missing_value(iris_with_missing$Species)
 
+#Apply this function to the columns of iris_with_missing using a map statement
 map(iris_with_missing, missing_value)
 ```
 
