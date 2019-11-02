@@ -28,7 +28,7 @@ theme_set(theme_minimal() + theme(legend.position = "bottom"))
 
 # PROBLEM1
 
-```{r}
+```{r echo=FALSE}
 set.seed(10)
 
 iris_with_missing = iris %>% 
@@ -37,7 +37,7 @@ iris_with_missing = iris %>%
 
 ```
 
-```{r}
+```{r echo=FALSE}
 #Write a function 
 missing_value = function(vec) {
   if (is.numeric(vec)) {
@@ -64,7 +64,8 @@ map(iris_with_missing, missing_value)
 
 # PROBLEM2
 
-```{r}
+```{r echo=TRUE}
+# create a tidy dataframe
 filename = list.files("./data") 
 data_path = paste("./data", filename, sep = "/")
 
@@ -75,49 +76,40 @@ data =
   map(read_csv) %>%     
   reduce(rbind) %>% 
   cbind(names) %>% 
-  select(filename,everything()) %>% 
   separate(col = filename, into = c("group","ID_csv"), sep = "_") %>% 
   mutate(ID = str_replace(ID_csv,".csv","")) %>% 
   select( group, ID, everything()) %>% 
-  select(-ID_csv)
+  select(-ID_csv) %>% 
+  janitor::clean_names() %>% 
+  knitr::kable()
+```
+
+```{r echo=TRUE}
+# plot
+
 
 ```
 
+
 # PROBLEM3
 
-```{r}
-model = function(beta0=2, beta1=0, sigma2=50) {
-  x = rnorm(30)
-  epi = rnorm(30, sd = sigma2)
-  y = beta0 + beta1 * x + epi
+```{r echo=TRUE}
+model = function(beta1=0) {
+  x = rnorm(30, 0, 1)
+  epi = rnorm(30, 0, sd = 50)
+  y = 2 + beta1 * x + epi
   data = tibble(x=x,y=y)
+  
   ls_fit = lm(y~x, data) %>% 
     broom::tidy()
   return(tibble(beta1 = ls_fit$estimate[[2]], p = ls_fit$p.value[2]))
 }
 
-df = tibble(beta,p)
-for (i in 1:10) {
-  m[i,] = model()
-  i = i+1
-}
-df
-  
-
-for(beta1 in 1:6) {
-  
-  data = model(beta1=beta1)
-  ls_fit = lm(y~x, data) %>% 
-    broom::tidy()
-  df = df %>% mutate(beta1 = coef(ls_fit)[2])
-  
-}
+sim_results = 
+  rerun(10000, model(0)) %>%  ## rerun
+  bind_rows()
 
 
-data=model(1)
- ls_fit =lm(y~x,data) %>% 
-   broom::tidy() %>% 
-   select(p.value)
  
 
 ```
