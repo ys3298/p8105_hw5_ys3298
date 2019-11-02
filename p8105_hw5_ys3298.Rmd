@@ -80,38 +80,102 @@ data =
   mutate(ID = str_replace(ID_csv,".csv","")) %>% 
   select( group, ID, everything()) %>% 
   select(-ID_csv) %>% 
-  janitor::clean_names() %>% 
-  knitr::kable()
+  janitor::clean_names() 
+
+data %>%  knitr::kable()
+
+clean_data = data %>% 
+  pivot_longer(
+    week_1:week_8,
+    names_to = "week",
+    names_prefix ="week_",
+    values_to = "observations"
+  )
 ```
 
 ```{r echo=TRUE}
 # plot
-
-
+clean_data %>% 
+  ggplot(aes(x = week, y = observations)) + geom_line(aes(group = id,color = id)) + labs(title = "observations on each subject over time") +
+  facet_grid(.~group)
 ```
 
+From the plots, we can see the overall observations in experimental group are higher than the control group and the observation for each day in a week remains at the same level for control group, wheras increases for observation group.
 
 # PROBLEM3
 
 ```{r echo=TRUE}
-model = function(beta1=0) {
+model = function(beta1 = 0) {
   x = rnorm(30, 0, 1)
   epi = rnorm(30, 0, sd = 50)
   y = 2 + beta1 * x + epi
-  data = tibble(x=x,y=y)
+  data = tibble(x = x, y = y)
   
-  ls_fit = lm(y~x, data) %>% 
+  ls_fit = lm(y ~ x, data) %>% 
     broom::tidy()
-  return(tibble(beta1 = ls_fit$estimate[[2]], p = ls_fit$p.value[2]))
+  
+  return(tibble(beta1 = pull(ls_fit,estimate)[[2]], p = pull(ls_fit,p.value)[[2]]))
 }
 
+n = 100
+
 sim_results = 
-  rerun(10000, model(0)) %>%  ## rerun
+  rerun(n, model(0)) %>%  ## rerun
   bind_rows()
 
+sim_all = 
+  tibble(beta1_true = c(1, 2, 3, 4, 5, 6)) %>% 
+  mutate(
+    output_list = map(.x = beta1_true, ~rerun(n, model(beta1 = .x)))) %>% 
+  unnest %>% 
+  unnest
+```
 
- 
+```{r}
+proportion =
+  sim_all %>% 
+  filter(p < 0.05) %>% 
+  group_by(beta1_true) %>% 
+  summarize(proportion = n()/n) 
+
+proportion %>% 
+  ggplot(aes(x = beta1, y = proportion)) + geom_point(color = "blue", size = 5) + geom_line(color = "blue") +
+  labs(x = "beta1", y = "Power(proportion of reject)", title = "Association between effect size and power")
+```
+**Describe the association between effect size and power:**
+
+```{r}
+beta1_true_average = 
+  sim_all %>% 
+  group_by(beta1_true) %>% 
+  summarize(average = mean(beta1)) 
+
+beta1_reject_average =
+  sim_all %>% 
+  filter(p<0.05) %>% 
+  group_by(beta1_true) %>% 
+  summarize(average_reject = mean(beta1)) 
+
+all_info = left_join(sim_all, beta1_true_average) %>% 
+  left_join(beta1_reject_average)
+  
+
+all_info %>% 
+  ggplot(aes(x = beta1_true)) + geom_point(aes(y = average), size = 5, color = "pink") +
+  geom_line(aes(y = average, color = "pink")) + 
+  geom_point(aes(y = average_reject), size = 5, color = "blue") +
+  geom_line(aes(y = average_reject), color = "blue") +
+  labs(
+    title = "Estimate Beta1 Vs True Beta1",
+    x = "True Beta1",
+    y = "Average Beta1"
+  )
+
 
 ```
+
+The sample average of beta1_hat across tests for which the null is rejected is not approximately equal to the true value of beta1.
+
+Because the null here is beta1 = 0. When we reject the null, we get result from beta1$\neq$0, so the model changes here.
 
 
