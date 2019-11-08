@@ -95,14 +95,16 @@ clean_data %>%
   facet_grid(.~group)
 ```
 
-From the plots, we can see the overall observations in experimental group are higher than the control group and the observation for each day in a week remains at the same level for control group, wheras increases for observation group.
+From the plots, we can see the overall observations in experimental group are higher than the control group and the observation for each day in a week flactuate a lot but basiclly remains at the same level for control group, wheras increases for observation group.
 
 # PROBLEM3
 
 ```{r echo=TRUE}
+set.seed(1)
+
 model = function(beta1 = 0) {
   x = rnorm(30, 0, 1)
-  epi = rnorm(30, 0, sd = 50)
+  epi = rnorm(30, 0, sd = sqrt(50))
   y = 2 + beta1 * x + epi
   data = tibble(x = x, y = y)
   
@@ -137,7 +139,7 @@ proportion %>%
   ggplot(aes(x = beta1_true, y = proportion)) + geom_point(color = "blue", size = 5) + geom_line(color = "blue") +
   labs(x = "beta1", y = "Power(proportion of reject)", title = "Association between effect size and power")
 ```
-**Describe the association between effect size and power:** Power increases with the increase of size effect.
+**Describe the association between effect size and power:** Form the plot, we can see there is a linear relationship between power and size effect. Power increases with the increase of size effect.
 
 ```{r}
 beta1_true_average = 
@@ -151,15 +153,18 @@ beta1_reject_average =
   group_by(beta1_true) %>% 
   summarize(average_reject = mean(beta1)) 
 
-all_info = left_join(sim_all, beta1_true_average) %>% 
-  left_join(beta1_reject_average)
+all_info = left_join(beta1_true_average,beta1_reject_average) 
   
 
 all_info %>% 
-  ggplot(aes(x = beta1_true)) + geom_point(aes(y = average), size = 5, color = "pink") +
+  ggplot(aes(x = beta1_true)) + 
+  geom_point(aes(y = average), size = 5, color = "pink") +
   geom_line(aes(y = average, color = "pink")) + 
   geom_point(aes(y = average_reject), size = 5, color = "blue") +
   geom_line(aes(y = average_reject), color = "blue") +
+  scale_color_identity(breaks = c("pink", "blue"),
+                       labels = c("True values", "Rejected values"),
+                       guide = "legend") +
   labs(
     title = "Estimate Beta1 Vs True Beta1",
     x = "True Beta1",
@@ -171,6 +176,6 @@ all_info %>%
 
 The sample average of beta1_hat across tests for which the null is rejected is not approximately equal to the true value of beta1.
 
-Because the null here is beta1 = 0. When we reject the null, we get result from beta1$\neq$0, so the model changes here.
+Because the null here is beta1 = 0. When we reject the null, we get result from beta1 not equal to 0. As the real beta 1 increases, the difference between these two will converge.
 
 
