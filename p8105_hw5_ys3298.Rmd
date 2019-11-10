@@ -81,6 +81,7 @@ clean_data = data %>%
     values_to = "observations"
   )
 
+clean_data 
 ```
 
 ```{r echo=TRUE}
