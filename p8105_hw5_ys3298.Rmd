@@ -7,7 +7,6 @@ output: github_document
 
 ```{r setup, include=FALSE}
 library(tidyverse)
-library(viridis)
 
 knitr::opts_chunk$set(
 	echo = TRUE,
@@ -16,12 +15,6 @@ knitr::opts_chunk$set(
   fig.height = 6,
   out.width = "90%"
 )
-options(
-  ggplot2.continuous.colour = "viridis",
-  ggplot2.continuous.fill = "viridis"
-)
-scale_colour_discrete = scale_colour_viridis_d
-scale_fill_discrete = scale_fill_viridis_d
 theme_set(theme_minimal() + theme(legend.position = "bottom"))
 ```
 
@@ -48,7 +41,7 @@ missing_value = function(vec) {
   } else {
     stop("Error in type")
   }
-  output
+  return(output)
 }
 
 #Apply this function to the columns of iris_with_missing using a map statement
@@ -79,6 +72,7 @@ data =
 
 data %>%  knitr::kable()
 
+# tidy the result
 clean_data = data %>% 
   pivot_longer(
     week_1:week_8,
@@ -86,6 +80,7 @@ clean_data = data %>%
     names_prefix ="week_",
     values_to = "observations"
   )
+
 ```
 
 ```{r echo=TRUE}
@@ -95,7 +90,7 @@ clean_data %>%
   facet_grid(.~group)
 ```
 
-From the plots, we can see the overall observations in experimental group are higher than the control group and the observation for each day in a week flactuate a lot but basiclly remains at the same level for control group, wheras increases for observation group.
+From the plots, we can see the overall observations in experimental group are higher than the control group. The observation for each day in a week flactuated a lot but basiclly remains at the same level for control group, wheras the observations increases by days for observation group.
 
 # PROBLEM3
 
@@ -123,7 +118,7 @@ sim_results =
 sim_all = 
   tibble(beta1_true = c(1, 2, 3, 4, 5, 6)) %>% 
   mutate(
-    output_list = map(.x = beta1_true, ~rerun(n, model(beta1 = .x)))) %>% 
+    output_list = map(.x = beta1_true, ~rerun(n, model(beta1 = .x)))) %>%
   unnest %>% 
   unnest
 ```
@@ -149,19 +144,18 @@ beta1_true_average =
 
 beta1_reject_average =
   sim_all %>% 
-  filter(p<0.05) %>% 
+  filter(p < 0.05) %>% 
   group_by(beta1_true) %>% 
   summarize(average_reject = mean(beta1)) 
 
 all_info = left_join(beta1_true_average,beta1_reject_average) 
   
-
 all_info %>% 
   ggplot(aes(x = beta1_true)) + 
-  geom_point(aes(y = average), size = 5, color = "pink") +
+  geom_point(aes(y = average, color = "pink"), size = 5) +
   geom_line(aes(y = average, color = "pink")) + 
-  geom_point(aes(y = average_reject), size = 5, color = "blue") +
-  geom_line(aes(y = average_reject), color = "blue") +
+  geom_point(aes(y = average_reject, color = "blue"), size = 5) +
+  geom_line(aes(y = average_reject, color = "blue")) +
   scale_color_identity(breaks = c("pink", "blue"),
                        labels = c("True values", "Rejected values"),
                        guide = "legend") +
@@ -170,12 +164,10 @@ all_info %>%
     x = "True Beta1",
     y = "Average Beta1"
   ) 
-
-
 ```
 
 The sample average of beta1_hat across tests for which the null is rejected is not approximately equal to the true value of beta1.
 
-Because the null here is beta1 = 0. When we reject the null, we get result from beta1 not equal to 0. As the real beta 1 increases, the difference between these two will converge.
+Because the null here is beta1 = 0. When we reject the null, we get result from beta1 not equal to 0. As the real beta1 increases, the difference between these two will converge.
 
 
