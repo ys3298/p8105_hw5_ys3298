@@ -53,7 +53,7 @@ map(iris_with_missing, missing_value) %>%
 # PROBLEM2
 
 ```{r echo=TRUE, message=FALSE}
-# create a tidy dataframe
+# create a not tidy dataframe
 filename = list.files("./data") 
 data_path = paste("./data", filename, sep = "/")
 
@@ -70,22 +70,24 @@ data =
   select(-ID_csv) %>% 
   janitor::clean_names() 
 
-data %>%  knitr::kable()
+# show reader-friendly dataf
+data 
 
-# tidy the result
+# tidy the dataframe
 clean_data = data %>% 
   pivot_longer(
     week_1:week_8,
     names_to = "week",
-    names_prefix ="week_",
+    names_prefix = "week_",
     values_to = "observations"
-  )
+  ) %>% 
+  mutate(week = as.factor(week), id = as.factor(id), group = as.factor(group))
 
-clean_data 
+clean_data
 ```
 
 ```{r echo=TRUE}
-# plot
+# making plot
 clean_data %>% 
   ggplot(aes(x = week, y = observations)) + geom_line(aes(group = id,color = id)) + labs(title = "observations on each subject over time") +
   facet_grid(.~group)
@@ -169,6 +171,6 @@ all_info %>%
 
 The sample average of beta1_hat across tests for which the null is rejected is not approximately equal to the true value of beta1.
 
-Because the null here is beta1 = 0. When we reject the null, we get result from beta1 not equal to 0. As the real beta1 increases, the difference between these two will converge.
+Because the null here is beta1 = 0. When we reject the null, we get result from beta1 not equal to 0. We can also notice that as the real beta1 increases, the difference between these two will converge. This is because with the increase of beta1, the power increase.
 
 
