@@ -65,7 +65,8 @@ data =
   reduce(rbind) %>% 
   cbind(names) %>% 
   separate(col = filename, into = c("group","ID_csv"), sep = "_") %>% 
-  mutate(ID = str_replace(ID_csv,".csv","")) %>% 
+  mutate(ID = str_replace(ID_csv,".csv",""),
+         group = recode(group, "con" = "control" , "exp" = "experimental")) %>% 
   select(group, ID, everything()) %>% 
   select(-ID_csv) %>% 
   janitor::clean_names() 
